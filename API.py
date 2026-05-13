@@ -27,8 +27,8 @@ def get_nifty50_data():
         b.TTL_TRD_QNTY,
         b.PCT_CHNG
     FROM stock_streets.bhavcopy AS b
-    INNER JOIN call_book.nifty_50 AS m
-    ON b.SYMBOL = m.symbol
+    INNER JOIN stock_streets.n50 AS m
+    ON b.SYMBOL = m.SYMBOL
     WHERE b.T_DATE = (
         SELECT MAX(T_DATE)
         FROM stock_streets.bhavcopy

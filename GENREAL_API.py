@@ -15,10 +15,10 @@ app.add_middleware(
 
 # ---------------- SAFE TABLE MAPPING ---------------- #
 ALLOWED_TABLES = {
-    "nifty50": "nifty_50",
-    "niftynext50": "nifty_next50",
-    "midcap": "nifty_midcap50",
-    "smallcap": "nifty_smallcap"
+    "nifty50": "n50",
+    "niftynext50": "nn50",
+    "midcap": "nm50",
+    "smallcap": "ns50"
 }
 
 # ---------------- MAIN API ---------------- #
@@ -43,7 +43,7 @@ def get_index_data(index: str):
             b.TTL_TRD_QNTY,
             b.PCT_CHNG
         FROM stock_streets.bhavcopy AS b
-        INNER JOIN call_book.{table} AS m
+        INNER JOIN stock_streets.{table} AS m
         ON b.SYMBOL = m.symbol
         WHERE b.T_DATE = (
             SELECT MAX(T_DATE)
