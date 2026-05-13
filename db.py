@@ -3,11 +3,6 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-mydb = pymysql.connect(host='147.93.97.191',
-                       user='client',
-                       password='StockStreets@2026',
-                       database='stock_streets',
-                       port=3306)
 mydb=pymysql.connect(
     host=os.getenv("DB_HOST"),
     user=os.getenv("DB_USER"),
