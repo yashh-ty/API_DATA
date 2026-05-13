@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from db import cursor  # your existing connection
+from db import cursor
 
 app = FastAPI()
 
@@ -21,12 +21,13 @@ ALLOWED_TABLES = {
     "smallcap": "ns50"
 }
 
-# ---------------- MAIN API ---------------- #
+
 
 @app.get("/")
 def home():
     return {"message": "API is running"}
 
+# ---------------- USED TO GET THE DATA OFF STOCKS OF BASED ON INDEXES---------------- #
 @app.get("/index-data/{index}")
 def get_index_data(index: str):
     table = ALLOWED_TABLES.get(index.lower())
@@ -56,3 +57,72 @@ def get_index_data(index: str):
     records = cursor.fetchall()
 
     return  records
+
+#-------It is used to get the OHLC of any of the stock--------------#
+
+@app.get("/stock/{symbol}")
+def get_stock_ohlc(symbol: str):
+
+    query = """
+        SELECT 
+            T_DATE,
+            SYMBOL,
+            OPEN_PRICE,
+            HIGH_PRICE,
+            LOW_PRICE,
+            CLOSE_PRICE,
+            TTL_TRD_QNTY,
+            PCT_CHNG,
+            DELIV_PER
+        FROM bhavcopy
+        WHERE symbol = %s
+        ORDER BY T_DATE DESC
+        LIMIT 1
+    """
+
+    cursor.execute(query, (symbol.upper(),))
+
+    row = cursor.fetchone()
+
+    if not row:
+        raise HTTPException(
+            status_code=404,
+            detail="Stock not found"
+        )
+
+    return {
+        "DATE":row['T_DATE'],
+        "SYMBOL": row['SYMBOL'],
+        "OPEN": row['OPEN_PRICE'],
+        "HIGH": row['HIGH_PRICE'],
+        "LOW": row['LOW_PRICE'],
+        "CLOSE": row['CLOSE_PRICE'],
+        "VOLUME":row['TTL_TRD_QNTY'],
+        "DELIV_PCT":row['PCT_CHNG']
+
+    }
+
+#-------------------USED TO SUGGEST THE STOCKS BASED ON THE INPUT---------#
+@app.get("/search-stock")
+def search_stock(q: str):
+    try:
+
+        sql = '''SELECT DISTINCT SYMBOL
+        FROM stock_streets.bhavcopy
+        WHERE SYMBOL LIKE %s
+        AND T_DATE = (
+        SELECT MAX(T_DATE)
+        FROM stock_streets.bhavcopy
+        )
+        LIMIT 10;'''
+
+        cursor.execute(sql, (f"{q.upper()}%",))
+
+        results = cursor.fetchall()
+        stocks = []
+        for row in results:
+            stocks.append(row["SYMBOL"])
+        return stocks
+
+    except Exception as e:
+        return {"error": str(e)}
