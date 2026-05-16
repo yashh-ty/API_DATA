@@ -224,7 +224,6 @@ def submit_call(data: dict):
 
         cursor = connection.cursor()
 
-
         cursor.execute(insert_query, values)
 
 
