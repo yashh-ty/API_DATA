@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from db import cursor,mydb
+from db import connection_sql
 
 app = FastAPI()
 
@@ -51,12 +51,15 @@ def get_index_data(index: str):
             FROM stock_streets.bhavcopy
         );
         """
+    connection = connection_sql()
 
+    cursor = connection.cursor()
     cursor.execute(query)
-
     records = cursor.fetchall()
 
     return  records
+
+
 
 #-------It is used to get the OHLC of any of the stock--------------#
 
@@ -80,9 +83,19 @@ def get_stock_ohlc(symbol: str):
         LIMIT 1
     """
 
+    connection = connection_sql()
+
+    cursor = connection.cursor()
+
     cursor.execute(query, (symbol.upper(),))
 
     row = cursor.fetchone()
+
+
+
+
+
+
 
     if not row:
         raise HTTPException(
@@ -115,6 +128,10 @@ def search_stock(q: str):
         FROM stock_streets.bhavcopy
         )
         LIMIT 10;'''
+
+        connection = connection_sql()
+
+        cursor = connection.cursor()
 
         cursor.execute(sql, (f"{q.upper()}%",))
 
@@ -203,10 +220,13 @@ def submit_call(data: dict):
             reward
 
         )
+        connection = connection_sql()
+
+        cursor = connection.cursor()
+
 
         cursor.execute(insert_query, values)
 
-        mydb.commit()
 
         return {
 
