@@ -240,3 +240,8 @@ def submit_call(data: dict):
             status_code=500,
             detail=str(e)
         )
+
+
+@app.get("/new")
+def home():
+    return {"message": "LATEST VERSION WORKING"}
