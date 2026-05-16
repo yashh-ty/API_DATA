@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from db import connection_sql
+from db import connection_sql1,connection_sql2
 
 app = FastAPI()
 
@@ -51,7 +51,7 @@ def get_index_data(index: str):
             FROM stock_streets.bhavcopy
         );
         """
-    connection = connection_sql()
+    connection = connection_sql1()
 
     cursor = connection.cursor()
     cursor.execute(query)
@@ -83,7 +83,7 @@ def get_stock_ohlc(symbol: str):
         LIMIT 1
     """
 
-    connection = connection_sql()
+    connection = connection_sql1()
 
     cursor = connection.cursor()
 
@@ -129,7 +129,7 @@ def search_stock(q: str):
         )
         LIMIT 10;'''
 
-        connection = connection_sql()
+        connection = connection_sql1()
 
         cursor = connection.cursor()
 
@@ -220,7 +220,7 @@ def submit_call(data: dict):
             reward
 
         )
-        connection = connection_sql()
+        connection = connection_sql2()
 
         cursor = connection.cursor()
 
