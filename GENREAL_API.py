@@ -1,7 +1,7 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException,Body
 from fastapi.middleware.cors import CORSMiddleware
 from db import connection_sql1
-
+import bcrypt
 app = FastAPI()
 
 # Allow frontend access
@@ -240,7 +240,202 @@ def submit_call(data: dict):
             detail=str(e)
         )
 
+@app.post("/login")
+def login(data: dict = Body(...)):
 
+    try:
+
+        mobilenumber = data.get("mobileNumber")
+
+        pin = data.get("pin")
+
+        # -----------------------------
+        # CHECK USER IN DATABASE
+        # -----------------------------
+
+        query = """
+
+            SELECT id, full_name, pin_hash
+            FROM users_call
+            WHERE mobile_number=%s
+
+        """
+        connection = connection_sql1()
+
+
+        cursor = connection.cursor()
+        cursor.execute(query)
+
+        user = cursor.fetchone()
+
+        # -----------------------------
+        # INVALID LOGIN
+        # -----------------------------
+
+        if not user:
+
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid Mobilenumber or Pin"
+            )
+
+        stored_hash = user[2]
+
+        # -----------------------------
+        # VERIFY PIN
+        # -----------------------------
+
+        if not bcrypt.checkpw(
+
+            pin.encode("utf-8"),
+            stored_hash.encode("utf-8")
+
+        ):
+
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid Mobilenumber or Pin"
+            )
+
+        # -----------------------------
+        # SUCCESS LOGIN
+        # -----------------------------
+
+        return {
+
+            "success": True,
+
+            "message": "Login Successful",
+
+            "user": {
+
+                "id": user[0],
+
+                "full_name": user[1]
+
+            }
+
+        }
+
+    except Exception as e:
+
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+
+
+@app.post("/signup")
+def signup(data: dict = Body(...)):
+
+    try:
+
+        # -----------------------------------
+        # FETCH DATA
+        # -----------------------------------
+
+        full_name = data.get("fullName")
+
+        mobile_number = data.get("mobileNumber")
+
+        dob = data.get("DOB")
+
+        pin_code = data.get("pinCode")
+
+        city = data.get("city")
+
+        email = data.get("email")
+
+        pin = data.get("pin")
+
+        # -----------------------------------
+
+        # -----------------------------------
+
+        check_query = """
+
+            SELECT id
+            FROM users_call
+            WHERE email=%s
+            OR mobile_number=%s
+
+        """
+        connection = connection_sql1()
+
+        cursor = connection.cursor()
+        cursor.execute(
+            check_query,
+            (email, mobile_number)
+        )
+
+        existing_user = cursor.fetchone()
+
+        if existing_user:
+
+            raise HTTPException(
+                status_code=400,
+                detail="User already exists"
+            )
+
+        # -----------------------------------
+        # HASH PIN
+        # -----------------------------------
+
+        hashed_pin = bcrypt.hashpw(
+            pin.encode("utf-8"),
+            bcrypt.gensalt()
+        )
+
+        # -----------------------------------
+        # INSERT QUERY
+        # -----------------------------------
+
+        insert_query = """
+
+            INSERT INTO users_call (
+
+                full_name,
+                mobile_number,
+                dob,
+                pin_code,
+                city,
+                email,
+                pin_hash
+
+            )
+
+            VALUES (%s,%s,%s,%s,%s,%s,%s)
+
+        """
+
+        values = (
+
+            full_name,
+            mobile_number,
+            dob,
+            pin_code,
+            city,
+            email,
+            hashed_pin.decode("utf-8")
+
+        )
+
+        cursor.execute(insert_query, values)
+
+
+        return {
+
+            "success": True,
+            "message": "Signup Successful"
+
+        }
+
+    except Exception as e:
+
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
 @app.get("/new")
 def home():
     return {"message": "LATEST VERSION WORKING"}
