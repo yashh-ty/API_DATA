@@ -264,7 +264,7 @@ def login(data: dict = Body(...)):
 
 
         cursor = connection.cursor()
-        cursor.execute(query)
+        cursor.execute(query,(mobilenumber,))
 
         user = cursor.fetchone()
 
