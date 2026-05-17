@@ -240,6 +240,9 @@ def submit_call(data: dict):
             detail=str(e)
         )
 
+
+
+
 @app.post("/login")
 def login(data: dict = Body(...)):
 
@@ -249,10 +252,6 @@ def login(data: dict = Body(...)):
 
         pin = data.get("pin")
 
-        # -----------------------------
-        # CHECK USER IN DATABASE
-        # -----------------------------
-
         query = """
 
             SELECT id, full_name, pin_hash
@@ -260,17 +259,14 @@ def login(data: dict = Body(...)):
             WHERE mobile_number=%s
 
         """
+
         connection = connection_sql1()
 
-
         cursor = connection.cursor()
-        cursor.execute(query,(mobilenumber,))
+
+        cursor.execute(query, (mobilenumber,))
 
         user = cursor.fetchone()
-
-        # -----------------------------
-        # INVALID LOGIN
-        # -----------------------------
 
         if not user:
 
@@ -279,11 +275,7 @@ def login(data: dict = Body(...)):
                 detail="Invalid Mobilenumber or Pin"
             )
 
-        stored_hash = user[2]
-
-        # -----------------------------
-        # VERIFY PIN
-        # -----------------------------
+        stored_hash = user["pin_hash"]
 
         if not bcrypt.checkpw(
 
@@ -297,10 +289,6 @@ def login(data: dict = Body(...)):
                 detail="Invalid Mobilenumber or Pin"
             )
 
-        # -----------------------------
-        # SUCCESS LOGIN
-        # -----------------------------
-
         return {
 
             "success": True,
@@ -309,13 +297,17 @@ def login(data: dict = Body(...)):
 
             "user": {
 
-                "id": user[0],
+                "id": user["id"],
 
-                "full_name": user[1]
+                "full_name": user["full_name"]
 
             }
 
         }
+
+    except HTTPException as e:
+
+        raise e
 
     except Exception as e:
 
