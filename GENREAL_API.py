@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from db import connection_sql1,connection_sql2
+from db import connection_sql1
 
 app = FastAPI()
 
@@ -220,7 +220,7 @@ def submit_call(data: dict):
             reward
 
         )
-        connection = connection_sql2()
+        connection = connection_sql1()
 
         cursor = connection.cursor()
 

@@ -18,16 +18,5 @@ def connection_sql1():
     return mydb
 
 
-def connection_sql2():
-    mydb=pymysql.connect(
-        host=os.getenv("DB_HOST1"),
-        user=os.getenv("DB_USER1"),
-        password=os.getenv("DB_PASSWORD1"),
-        database=os.getenv("DB_NAME1"),
-        port=int(os.getenv("DB_PORT1")),
-        cursorclass=pymysql.cursors.DictCursor,
 
-        autocommit=True
-    )
-    return mydb
 
